@@ -4,19 +4,21 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/connection.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/typedef.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/process_management.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/typedef.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/server.c" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/error_management.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/process_management.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/http-parser-master/http_parser.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/http-parser-master/http_parser.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/error_management.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/error_management.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/connection.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/server_http_parser.h" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/process_management.h" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/utilities.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/server_http_parser.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/send_recv.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/CMakeLists.txt" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/process_management.c" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/utilities.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/files.h" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/send_recv.c" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/files.c" isTestSource="false" />

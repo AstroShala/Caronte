@@ -8,6 +8,8 @@
 #include <unistd.h>
 #include "typedef.h"
 
-pid_t spown_preforked_process(preforked_process *pf_p, int sock[2]);
+//pid_t spown_preforked_process(preforked_process *pf_p);
+
+void take_data(int);
 
 #endif //WEBSERVER_PROCESS_MANAGEMENT_H
