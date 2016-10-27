@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <pthread.h>
 #include "process_management.h"
 #include "typedef.h"
 #include "files.h"
@@ -32,10 +33,12 @@ void process_main(){
         if(client_fd < 0)
             die_with_error("no descriptor passed from parent");
 
-        if(setsockopt(client_fd, IPPROTO_TCP, SO_KEEPALIVE, & (int) { 1 }, sizeof(int)) == -1)
+        if(setsockopt(client_fd, SOL_SOCKET, SO_KEEPALIVE, & (int) { 1 }, sizeof(int)) == -1)
             die_with_error("erorr while set socket option");
 
         take_data(client_fd); /*process request*/
+
+        printf("--CLIENT SERVED--\n"); /*DEBUG*/
 
         close_fd(client_fd);
 
@@ -87,7 +90,9 @@ void take_data(int sock_fd) {
             die_with_error("error while receiving data");
         }
 
-        if (received == 0)
+        printf("%d\n", received);
+
+        if (received == EOF)
             break;
 
         //printf("DATA RECEIVED\n\n"); /*--DEBUG--*/
@@ -103,5 +108,9 @@ void take_data(int sock_fd) {
         td->url = url;
 
         spawn_thread(td);
+
+        pthread_join(td->tid, NULL);
+
+        break;
     }
 }
