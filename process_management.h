@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include "typedef.h"
 
-//pid_t spown_preforked_process(preforked_process *pf_p);
+pid_t spawn_preforked_process(int, int, preforked_process *);
 
 void take_data(int);
 

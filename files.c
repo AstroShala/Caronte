@@ -5,19 +5,22 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <errno.h>
 #include "files.h"
 #include "error_management.h"
 
 /* define if struct msghdr contains the msg_control element */
 #define HAVE_MSGHDR_MSG_CONTROL 1
 
+int error;
+
 FILE *open_file_read(char *path){
     FILE *f;
 
     f = fopen(path, "r");
 
-    if(f == NULL)
-        die_with_error("error while opening file");
+    //if(f == NULL)
+        //die_with_error("error while opening file");
 
     return f;
 
@@ -49,10 +52,16 @@ void close_file(FILE *f){
 }
 
 void close_fd(int fd){
-    if(close(fd) != 0)
-        printf("error while closing file\n");
+    errno = 0;
+    if(close(fd) == -1) {
+        error = errno;
 
-    printf("socket %d closed\n", fd);
+        if(error == EBADF){
+
+        }else {
+            printf("error while closing file\n");
+        }
+    }
 }
 
 ssize_t write_unix_sock(int fd, void *ptr, size_t nbytes, int sendfd){
@@ -121,7 +130,7 @@ ssize_t read_fd(int fd, void *ptr, size_t nbytes, int *recvfd){
             die_with_error("control level != SOL_SOCKET");
         if (cmptr->cmsg_type != SCM_RIGHTS)
             die_with_error("control type != SCM_RIGHTS");
-        *recvfd = *((int *) CMSG_DATA(cmptr));
+        *recvfd = *CMSG_DATA(cmptr);
     } else
         *recvfd = -1;           /* descriptor was not passed */
 #endif

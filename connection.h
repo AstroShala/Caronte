@@ -7,6 +7,6 @@
 #ifndef WEBSERVER_CONNECTION_H
 #define WEBSERVER_CONNECTION_H
 
-int connect_retry_exponensial_backof(int sockfd, const struct sockaddr *address, socklen_t alen);
+int tcp_listen(socklen_t *);
 
 #endif //WEBSERVER_CONNECTION_H

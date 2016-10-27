@@ -3,21 +3,47 @@
 //
 
 #include <unistd.h>
+#include <netinet/in.h>
+#include <string.h>
 #include "connection.h"
+#include "error_management.h"
 
-#define MAX_SLEEP 128
+#define PORT_NUMBER 23000
+#define MAX_PENDING_REQUEST 5
 
-int connect_retry_exponensial_backof(int sockfd, const struct sockaddr *address, socklen_t alen){
+int tcp_listen(socklen_t *addr_len){
 
-    int nsec;
+    int sock_fd;
+    struct sockaddr_in socket_address; /*struct with socket address info*/
 
-    for(nsec = 1; nsec <= MAX_SLEEP; nsec <<= 1){  /*<<= left shift AND assignment operator. nsec = nsec << 1 (nsec*2)*/
-        if(connect(sockfd, address, alen) == 0)
-            return 0;
+    sock_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); /* creates the TSP socket IPv4 connection oriented*/
 
-        if(nsec <= MAX_SLEEP/2)
-            sleep(nsec);
+    if(sock_fd == -1)
+        die_with_error("error in sock()");
+
+    memset((void *) &socket_address, 0, sizeof(socket_address)); /*void *memset(void *s, int c, size_t n)
+                                                                  * fills  the  first  n  bytes of the memory area
+                                                                    pointed to by s with the constant byte c. (man)*/
+
+    socket_address.sin_family = AF_INET; /*IPv4 family*/
+    socket_address.sin_port = htons(PORT_NUMBER); /*define port number (host-to-network byte order short --16 bit-- )*/
+    socket_address.sin_addr.s_addr = htonl(INADDR_ANY); /*server accepts request from any network interface
+                                                         * (host-to-network byte order long --32 bit-- )*/
+
+    *addr_len = sizeof(socket_address);
+
+    if(bind(sock_fd, (struct sockaddr *) &socket_address, *addr_len) < 0) /*bind the socket with the port*/
+    {
+        //handler_on_die();
+        die_with_error("error in bind()");
     }
 
-    return -1;
+    if(listen(sock_fd, MAX_PENDING_REQUEST) <0) /*set the SO listening for connection without interrupt the server*/
+    {
+        //handler_on_die();
+        die_with_error("error in listen()");
+    }
+
+    return sock_fd;
 }
+
