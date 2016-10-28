@@ -20,8 +20,9 @@
 #include "process_management.h"
 #include "utilities.h"
 #include "connection.h"
+#include "constants.h"
 
-#define PORT_NUMBER 23000
+#define PORT_NUMBER DEFAULT_PORT
 #define MAX_PENDING_REQUEST 5
 #define RCV_BUF_SIZE 1024
 #define NUM_PREFORKED_PROCESS 5
