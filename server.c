@@ -26,6 +26,7 @@
 #define RCV_BUF_SIZE 1024
 #define NUM_PREFORKED_PROCESS 5
 
+
 int error;
 preforked_process pf_p[NUM_PREFORKED_PROCESS]; /* array of preforked_process structures*/
 
@@ -45,6 +46,8 @@ void sigint_handler(int sig){
 
     exit(EXIT_SUCCESS);
 }
+
+
 
 int main(){
 

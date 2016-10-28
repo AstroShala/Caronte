@@ -34,7 +34,7 @@ void process_main(){
             die_with_error("no descriptor passed from parent");
 
         if(setsockopt(client_fd, SOL_SOCKET, SO_KEEPALIVE, & (int) { 1 }, sizeof(int)) == -1)
-            die_with_error("erorr while set socket option");
+            die_with_error("error while set socket option");
 
         take_data(client_fd); /*process request*/
 
