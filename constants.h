@@ -44,15 +44,6 @@ const char *ACCEPT;
 /*  home page of server images to show to the client    */
 const char *INDEX;
 
-/*  Image struct    */
-typedef struct  img {
-    char    name[256];
-    size_t  width;
-    size_t  height;
-    char    type[5];
-    size_t  length;
-} img;
-
 /*  Image adapted struct   */
 typedef struct conv_img {
     char             original_name[256];
@@ -86,5 +77,19 @@ typedef struct log
     char status[50];    // HTTP response status
     size_t size;        // number of bytes sent
 } log;
+
+/* Image struct */
+typedef struct
+{
+    const char *base_path;
+
+    float quality;      //From Accept
+
+    int max_height;     //From libwurfl-master
+    int max_width;      //From libwurfl-master
+    int colors;         //From libwurfl-master
+    char *extension;    //From libwurfl-master
+
+} image_info_t;
 
 #endif //WEBSERVER_CONSTANTS_H

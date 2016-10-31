@@ -6,19 +6,6 @@
 
 #define MIN(a, b) (a < b ? a : b)
 
-typedef struct      //This structure should probably be filled elsewhere
-{
-    const char *base_path;
-
-    float quality;      //From Accept
-
-    int max_height;     //From libwurfl-master
-    int max_width;      //From libwurfl-master
-    int colors;         //From libwurfl-master
-    char *extension;    //From libwurfl-master
-
-} image_info_t;
-
 
 /*Error message*/
 
@@ -37,19 +24,19 @@ void ThrowWandException(MagickWand *wand)
 
 int save_image_with_image_info(image_info_t *image_info, const char *output)
 {
-    MagickWand *m_wand = NewMagickWand();
-    MagickResetIterator(m_wand);
-    MagickReadImage(m_wand, string_copy(image_info->base_path));
+    MagickWand *wand = NewMagickWand();
+    MagickResetIterator(wand);
+    MagickReadImage(wand, image_info->base_path);
 
     float quality = image_info->quality;
 
     uint64_t real_width;
-    if ((real_width = MagickGetImageWidth(m_wand)) == MagickFalse)
-        ThrowWandException(m_wand);
+    if ((real_width = MagickGetImageWidth(wand)) == MagickFalse)
+        ThrowWandException(wand);
 
     uint64_t real_height;
-    if ((real_height = MagickGetImageHeight(m_wand)) == MagickFalse)
-        ThrowWandException(m_wand);
+    if ((real_height = MagickGetImageHeight(wand)) == MagickFalse)
+        ThrowWandException(wand);
 
     uint64_t real_dimensions[] = {real_width, real_height};
     uint64_t bound_dimensions[] = {image_info->max_width, image_info->max_height};
@@ -63,19 +50,19 @@ int save_image_with_image_info(image_info_t *image_info, const char *output)
 
     /*Error check*/
 
-    if (quality != 0 && MagickSetImageCompressionQuality(m_wand, quality * 100) == MagickFalse)
-        ThrowWandException(m_wand);
+    if (quality != 0 && MagickSetImageCompressionQuality(wand, quality * 100) == MagickFalse)
+        ThrowWandException(wand);
 
-    if (width != 0 && height != 0 && MagickResizeImage(m_wand, width, height, LanczosFilter) == MagickFalse)
-        ThrowWandException(m_wand);
+    if (width != 0 && height != 0 && MagickResizeImage(wand, width, height, LanczosFilter) == MagickFalse)
+        ThrowWandException(wand);
 
-    if (colors != 0 && MagickQuantizeImage(m_wand, colors, RGBColorspace, 0, 4, 1) == MagickFalse)
-        ThrowWandException(m_wand);
+    if (colors != 0 && MagickQuantizeImage(wand, colors, RGBColorspace, 0, 4, 1) == MagickFalse)
+        ThrowWandException(wand);
 
-    if (MagickWriteImage(m_wand, output) == MagickFalse)
-        ThrowWandException(m_wand);
+    if (MagickWriteImage(wand, output) == MagickFalse)
+        ThrowWandException(wand);
 
-    MagickWandTerminus();/*No idea of what it is*/
+    MagickWandTerminus();   /*No idea of what it is but it seems to be necessary*/
 
     return 0;
 }
