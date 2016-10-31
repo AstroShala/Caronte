@@ -74,7 +74,6 @@ pid_t spawn_preforked_process(int i, int serv_sock_fd, preforked_process *pf_p){
 void take_data(int sock_fd) {
 
     char buf[RCV_BUF_SIZE];
-    char *url;
     int received;
     char file_size[256];
     thread_data *td;
@@ -98,14 +97,13 @@ void take_data(int sock_fd) {
         //printf("DATA RECEIVED\n\n"); /*--DEBUG--*/
 
         int len = received * sizeof(char);
-        url = malloc(len);
+        //url = malloc(len);
 
         alloc_memory((void *) &td, sizeof(thread_data));
 
         td->sock_fd = sock_fd;
         strcpy(td->buf, buf);
         td->received = received;
-        td->url = url;
 
         spawn_thread(td);
 

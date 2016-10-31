@@ -6,6 +6,7 @@
 #define WEBSERVER_HTTP_PARSER_H
 
 #include "http-parser-master/http_parser.h"
+#include "typedef.h"
 
 struct url_field {
     const char *name;
@@ -19,7 +20,7 @@ void parser_version_control(void);
 
 void initialize_request_parser(http_parser *parser);
 
-void parse_data(char * dest, char *buf, int rcvd);
+void parse_data(rcv_msg *msg, char *buf, int rcvd);
 
 void dump_url(const char *buf, struct http_parser_url *pUrl);
 

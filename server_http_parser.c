@@ -9,10 +9,12 @@
 #include "server_http_parser.h"
 #include "http-parser-master/http_parser.h"
 #include "error_management.h"
+#include "typedef.h"
 
 #define MAX_HEADER_LINES 10
 #define MAX_ELEMENT_SIZE 2048
 #define MAX_CHUNKS 16
+#define HOST "Host"
 
 /*SETTINGS ONLY FOR DEBUG*/
 /*http_parser_settings settings_null =
@@ -34,47 +36,9 @@
 
 struct message *mess;*/
 
-typedef struct{
-    int fd_sock;
-    char *url_buf;
-    int url_buf_len;
-} custom_data_t;
 
-static custom_data_t *custom_data;
-static http_parser *parser;
+
 //char url[MAX_ELEMENT_SIZE];
-struct http_parser_url url_parser;
-
-void parser_version_control(void){
-    unsigned long version;
-    unsigned major;
-    unsigned minor;
-    unsigned patch;
-
-    version = http_parser_version();
-    major = (version >> 16) & 255;
-    minor = (version >> 8) & 255;
-    patch = version & 255;
-    printf("http_parser v%u.%u.%u (0x%06lx)\n", major, minor, patch, version);
-
-    printf("sizeof(http_parser) = %u\n", (unsigned int)sizeof(http_parser));
-
-    static const char *all_methods[] = {
-            "GET",
-            "HEAD",
-            0
-    };
-
-    const char **this_method;
-    char buf[1024];
-    for (this_method = all_methods; *this_method; this_method++) {
-        char inner_buf[200];
-        sprintf(inner_buf, "%s / HTTP/1.1\r\n\r\n", *this_method);
-        strcat(buf, inner_buf);
-    }
-
-    printf("%s\n", buf);
-}
 
 
 void initialize_request_parser(http_parser *parser){
@@ -87,68 +51,110 @@ void initialize_request_parser(http_parser *parser){
     http_parser_init(parser, HTTP_REQUEST);
 
 }
-size_t
-strlncat(char *dst, size_t len, const char *src, size_t n)
-{
-    size_t slen;
-    size_t dlen;
-    size_t rlen;
-    size_t ncpy;
 
-    slen = strnlen(src, n);
-    dlen = strnlen(dst, len);
+int header_field_compare(rcv_msg *msg, const char *value, size_t length){
 
-    if (dlen < len) {
-        rlen = len - dlen;
-        ncpy = slen < rlen ? slen : (rlen - 1);
-        memcpy(dst + dlen, src, ncpy);
-        dst[dlen + ncpy] = '\0';
+    if(strncmp(msg->field, "Host", length) == 0){
+        //printf("Host parsing\n");
+        msg->host = malloc(length*sizeof(char));
+
+        if (msg->host == NULL)
+            die_with_error("error catching host");
+
+        strncpy(msg->host, value, length);
+        msg->host_length = length;
+
+        return 0;
+    }
+    if(strncmp(msg->field, "User-Agent", length) == 0){
+        msg->user_agent = malloc(length*sizeof(char));
+
+        if (msg->user_agent == NULL)
+            die_with_error("error catching host");
+
+        strncpy(msg->user_agent, value, length);
+        msg->user_agent_length = length;
+
+        return 0;
+    }
+    if(strncmp(msg->field, "Accept", length) == 0){
+        msg->accept = malloc(length*sizeof(char));
+
+        if (msg->accept == NULL)
+            die_with_error("error catching host");
+
+        strncpy(msg->accept, value, length);
+        msg->accept_length = length;
+
+        return 0;
+    }
+    if(strncmp(msg->field, "Accept-Language", length) == 0){
+        msg->accept_language = malloc(length*sizeof(char));
+
+        if (msg->accept_language == NULL)
+            die_with_error("error catching host");
+
+        strncpy(msg->accept_language, value, length);
+        msg->accept_language_length = length;
+
+        return 0;
+    }
+    if(strncmp(msg->field, "Accept-Encoding", length) == 0){
+        msg->accept_encoding = malloc(length*sizeof(char));
+
+        if (msg->accept_encoding == NULL)
+            die_with_error("error catching host");
+
+        strncpy(msg->accept_encoding, value, length);
+        msg->accept_encoding_length = length;
+
+        return 0;
     }
 
-    assert(len > slen + dlen);
-    return slen + dlen;
+    if(strncmp(msg->field, "Referer", length) == 0){
+        msg->referer = malloc(length*sizeof(char));
+
+        if (msg->referer == NULL)
+            die_with_error("error catching host");
+
+        strncpy(msg->referer, value, length);
+        msg->referer_length = length;
+
+        return 0;
+    }
+
+    if(strncmp(msg->field, "Connection", length) == 0){
+        msg->connection = malloc(length*sizeof(char));
+
+        if (msg->connection == NULL)
+            die_with_error("error catching host");
+
+        strncpy(msg->connection, value, length);
+        msg->connection_length = length;
+
+        return 0;
+    }
+
+    return -1;
+
 }
 
 int url_reader(http_parser *p, const char *buf, size_t length){
 
-    assert(p == parser);
+    //printf("Url: %.*s\n", (int)length, buf);
 
-    printf("Url: %.*s\n", (int)length, buf);
+    rcv_msg *msg = (rcv_msg *) p->data;
 
-    custom_data = malloc(sizeof(custom_data_t));
+    msg->url = malloc(length*sizeof(char));
 
-    if(custom_data == NULL)
-        die_with_error("error malloc() custom_data");
+    strncpy(msg->url, buf, length);
 
-    custom_data->url_buf = malloc(length*sizeof(char));
+    msg->url_length = length;
 
-    strncpy(custom_data->url_buf, buf, length);
-
-    custom_data->url_buf_len = length;
-
-    printf("Url: %.*s\n", (int)length, custom_data->url_buf);
+    //printf("msg->url: %.*s\n", (int) length, msg->url);
 
     return 0;
 
-}
-
-void dump_url(const char *buf, struct http_parser_url *pUrl) {
-    unsigned int i;
-
-    printf("\tfield_set: 0x%x, port: %u\n", pUrl->field_set, pUrl->port);
-    for (i = 0; i < UF_MAX; i++) {
-        if ((pUrl->field_set & (1 << i)) == 0) {
-            printf("\tfield_data[%u]: unset\n", i);
-            continue;
-        }
-
-        printf("\tfield_data[%u]: off: %u, len: %u, part: %.*s\n",
-               i,
-               pUrl->field_data[i].off,
-               pUrl->field_data[i].len,
-               pUrl->field_data[i].len,
-               buf + pUrl->field_data[i].off);
-    }
 }
 
 int on_message_begin(http_parser* _) {
@@ -163,33 +169,62 @@ int on_message_complete(http_parser* _) {
     return 0;
 }
 
-/*int on_header_value(http_parser* _, const char* at, size_t length) {
-    (void)_;
-    printf("Header value: %.*s\n", (int)length, at);
-    return 0;
-}*/
+int on_header_field(http_parser *p, const char* at, size_t length) {
 
-void parse_data(char *dest, char *buf, int rcvd){
+    rcv_msg *msg = (rcv_msg *) p->data;
+
+    free(msg->field);
+
+    msg->field = malloc(length*sizeof(char));
+
+    memset(msg->field, '\0', length);
+
+    strncpy(msg->field, at, length);
+
+    //printf("Field: %.*s with length %d\n", (int) length, msg->field, (int) length);
+
+    return 0;
+}
+
+int on_header_value(http_parser *p, const char* at, size_t length) {
+
+    rcv_msg *msg = (rcv_msg *) p->data;
+
+    //printf("Field: %s\n", msg->field);
+
+    //printf("Value: %.*s\n", (int) length, at);
+
+    if(header_field_compare(msg, at, length) == -1)
+        printf("problems in field reading\n");
+
+    return 0;
+}
+
+void parse_data(rcv_msg *msg, char *buf, int rcvd){
 
     size_t  nparsed;
 
     http_parser_settings settings;
+    http_parser *parser;
+
+    //printf("parser\n");
 
     memset(&settings, 0, sizeof(settings));
 
     settings.on_message_begin = on_message_begin;
     settings.on_url = url_reader;
     settings.on_message_complete = on_message_complete;
-    //settings.on_header_value = on_header_value;
+    settings.on_header_value = on_header_value;
+    settings.on_header_field = on_header_field;
 
     parser = malloc(sizeof(http_parser));
 
     http_parser_init(parser, HTTP_REQUEST);
 
-    nparsed = http_parser_execute(parser, &settings, buf, rcvd);
+    parser->data = msg;
+
+    nparsed = http_parser_execute(parser, &settings, buf, (size_t) rcvd);
 
     if(nparsed != (size_t) rcvd)
         die_with_error("nparsed != rcv");
-
-    strncpy(dest, custom_data->url_buf, custom_data->url_buf_len);
 }

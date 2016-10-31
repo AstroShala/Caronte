@@ -46,17 +46,26 @@ void *thread_routine(void *arg){
 
     printf("thread %ld alive\n", (long) td->tid);
 
-    parse_data(td->url, td->buf, td->received);
+    td->msg = malloc(sizeof(rcv_msg));
+
+    if(td->msg == NULL)
+        die_with_error("msg == NULL");
+
+    parse_data(td->msg, td->buf, td->received);
 
     //printf("%.*s\n", len, url);
+    printf("Host: %.*s\n", (int) td->msg->host_length, td->msg->host);
+    printf("User-Agent: %.*s\n", (int) td->msg->user_agent_length, td->msg->user_agent);
+    printf("Connection: %.*s\n", (int) td->msg->connection_length, td->msg->connection);
+    printf("Referer: %.*s\n", (int) td->msg->referer_length, td->msg->referer);
 
-    if(strcmp(td->url, "/") == 0)  /*if request is "IP:PORT_NUMBER/" send index.html page*/
-        td->url = "/index.html";
+    if(strcmp(td->msg->url, "/") == 0)  /*if request is "IP:PORT_NUMBER/" send index.html page*/
+        td->msg->url = "/index.html";
 
     FILE *f;
     long file_length;
 
-    f = open_file_read(td->url + 1);
+    f = open_file_read(td->msg->url + 1);
 
     if(f == NULL){
         send_404_page_not_found(td->sock_fd);
@@ -80,7 +89,7 @@ void *thread_routine(void *arg){
         sendn(td->sock_fd, ptr, 0);
     }
 
-    free(td->url);
+    free(td->msg->url);
 
     printf("thread %ld is dieing\n", (long) td->tid);
     return NULL;
