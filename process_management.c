@@ -20,6 +20,7 @@
 #define RCV_BUF_SIZE 1024
 
 void send_404_page_not_found(int sock_fd);
+void process_routine(int sock_fd, rcv_msg *msg, char *buf, int received); //eliminare dopo thread
 
 void process_main(){
     char c;
@@ -76,7 +77,8 @@ void take_data(int sock_fd) {
     char buf[RCV_BUF_SIZE];
     int received;
     char file_size[256];
-    thread_data *td;
+    rcv_msg *msg;
+    //thread_data *td;
 
     for(;;) {
         memset(buf, 0, RCV_BUF_SIZE);
@@ -94,21 +96,69 @@ void take_data(int sock_fd) {
         if (received == EOF)
             break;
 
+        msg = malloc(sizeof(rcv_msg)); //eliminare dopo thread
+
+        if(msg == NULL) {
+            die_with_error("error in malloc rcv_msg"); //eliminare dopo thread
+        }
+        process_routine(sock_fd, msg, buf, received);   //eliminare dopo thread
+        free(msg);                                      //eliminare dopo thread
+
         //printf("DATA RECEIVED\n\n"); /*--DEBUG--*/
 
         int len = received * sizeof(char);
         //url = malloc(len);
 
-        alloc_memory((void *) &td, sizeof(thread_data));
+        /*alloc_memory((void *) &td, sizeof(thread_data));
 
         td->sock_fd = sock_fd;
-        strcpy(td->buf, buf);
+        strcpy(td->buf, buf);                 Parte per i thread
         td->received = received;
 
         spawn_thread(td);
 
-        pthread_join(td->tid, NULL);
+        pthread_join(td->tid, NULL);*/
 
         break;
     }
+}
+
+//eliminare dopo thread
+void process_routine(int sock_fd, rcv_msg *msg, char *buf, int received){
+
+    char file_size[256];
+
+    parse_data(msg, buf, received);
+
+    if(strcmp(msg->url, "/") == 0)  /*if request is "IP:PORT_NUMBER/" send index.html page*/
+    msg->url = "/index.html";
+
+    FILE *f;
+    long file_length;
+
+    f = open_file_read(msg->url + 1);
+
+    if(f == NULL){
+        send_404_page_not_found(sock_fd);
+    }else {
+
+        file_length = get_file_size(f);
+
+        sprintf(file_size, "%ld", file_length);
+
+        char ptr[file_length];
+
+        read_file(f, ptr, file_length);
+
+        close_file(f);
+
+        sprintf(file_size, "Content-Length: %ld\r\n", file_length);
+        sendn(sock_fd, "HTTP/1.1 200 OK\r\n", 0);
+        sendn(sock_fd, file_size, 0);
+        sendn(sock_fd, "Connection: Keep-Alive", 0);
+        sendn(sock_fd, "Server: Caronte/Private\r\n\r\n", 0);
+        sendn(sock_fd, ptr, 0);
+    }
+
+    free(msg->url);
 }
