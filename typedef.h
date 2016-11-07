@@ -9,10 +9,10 @@
 #include <sys/types.h>
 
 typedef struct{
-    pid_t pid;         /* process ID */
-    int pipe_fd;      /* parent's stream pipe to/from child */
-    int status;      /* 0 = ready */
-    long count;       /* number of connections handled */
+    pid_t pid;              /* process ID */
+    int pipe_fd;            /* parent's stream pipe to/from child */
+    int status;             /* 0 = ready */
+    long count;             /* number of connections handled */
 } preforked_process;
 
 typedef struct{

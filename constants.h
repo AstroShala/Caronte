@@ -90,6 +90,6 @@ typedef struct
     int colors;         //From libwurfl-master
     char *extension;    //From libwurfl-master
 
-} image_info_t;
+} image_info;
 
 #endif //WEBSERVER_CONSTANTS_H

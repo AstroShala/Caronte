@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "../constants.h"
+#include "../utilities.h"
 #include <MagickWand/MagickWand.h>
 
 /*

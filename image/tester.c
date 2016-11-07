@@ -7,64 +7,66 @@
 
 #include "tester.h"
 
-static wurfl_t *wurfl;
 
-char *file_path_extension(const char *file_path)
-{
-    uint64_t path_length = strlen(file_path);
-    uint64_t extension_length = 0;
-    for (char *pivot = (char *)file_path + path_length; extension_length < path_length; pivot--, extension_length++) {
-        if (*pivot == '.')
-        {
-            extension_length--;
-            pivot++;
-            break;
+static wurfl_t *wurfl;
+const char* accept = "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
+char *image_extension = jpg;
+
+/* It will be called by main thread
+ *      @param accept: ok
+ *      @param image_extension: I write get_filename_ext(char image_path)
+ *                              that's called in image_info_init .... it is better to fix
+ * */
+float find_quality_factor(char *accept, char *image_extension) {
+
+
+    char *token, *ptr, field[1024];
+    float quality_factor = 1;
+
+    strcat(field, "image/");
+    strcat(field, image_extension);
+
+    if ((ptr = strstr(accept, field)) != NULL) {
+        token = ptr + strlen(field) + 1;
+    } else if ((ptr = strstr(accept, "*/*")) != NULL) {
+        token = ptr + strlen("*/*") + 1;
+    } else return quality_factor;
+
+    remove_spaces(token);
+    if ((token = strstr(token, "q=")) != NULL) {
+        token += strlen("q=");
+
+        errno = 0;
+        quality_factor = strtof(token, NULL);
+        if (errno != 0) {
+            perror("strtof");
+            return -1;
         }
     }
-    if (extension_length == 0) return "";
 
-    char *buffer = malloc(extension_length + 1);
-    memcpy(buffer, &file_path[path_length-extension_length], extension_length);
-    buffer[extension_length] = '\0';
-    return buffer;
+    return quality_factor;
 }
 
 
-image_info_t *image_info_init(const char *base_path, float quality) {
-
+image_info_t *image_info_init(const char *base_path, float quality_factor)
+{
     image_info_t *image_info = malloc(sizeof(image_info_t));
-    if (image_info == NULL)
-        die_with_error("Error in malloc()");
+    if(image_info == NULL)
+        die_with_error("Error allocating image_info structure");
 
-    image_info->base_path = string_copy(base_path);
-    image_info->quality = quality;
-    return image_info;
-}
+    image_info->base_path = base_path;
+    image_info->quality = quality_factor;
+    const char *user_agent = rcv_msg -> user_agent;
 
-http_response_t *http_response_image(const char *image_path) {
-
-    float relative_quality_parameter = //TODO from http_request struct (function)
-
-    image_info_t *image_info = image_init(image_path/*, relative_quality_parameter*/);
-
-    const char *user_agent =//TODO from http_request struct
-
-    device_t * device = wurfl_match(wurfl/*, user_agent*/);
+    device_t * device = wurfl_match(wurfl, user_agent);
 
     image_info->max_width = atoi(device_capability(device, "max_image_width"));
     image_info->max_height = atoi(device_capability(device, "max_image_height"));
     image_info->colors = atoi(device_capability(device, "colors"));
 
-    char *preferred_file_extension = file_path_extension(image_path);
+    file_extension = get_filename_ext(image_path); //maybe it's better to do it before (?)
 
-    char *preferred_file_extensions[] = {preferred_file_extension, "jpg", "png", "gif", NULL};
-    for (char **iterator = preferred_file_extensions; *iterator != NULL; iterator++) {
-        preferred_file_extension = *iterator;
-        if (streq(device_capability(device, *iterator++), "true"))
-            break;
-    }
-
-    image_info->extension = preferred_file_extension;
+    image_info->extension = file_extension;
 
     return image_info;
 }

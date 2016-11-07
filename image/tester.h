@@ -10,8 +10,11 @@
 #include <string.h>
 
 #include "device.h"
+#include "string.h"
 #include "../constants.h"
 #include "../error_management.h"
+#include "../typedef.h"
+#include "../utilities.h"
 
 /*
  Initializes the structure for the information about the image

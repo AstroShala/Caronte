@@ -4,9 +4,6 @@
 
 #include "image_management.h"
 
-#define MIN(a, b) (a < b ? a : b)
-
-
 /*Error message*/
 
 void ThrowWandException(MagickWand *wand)
@@ -62,7 +59,7 @@ int save_image_with_image_info(image_info_t *image_info, const char *output)
     if (MagickWriteImage(wand, output) == MagickFalse)
         ThrowWandException(wand);
 
-    MagickWandTerminus();   /*No idea of what it is but it seems to be necessary*/
+    MagickWandTerminus();
 
     return 0;
 }
